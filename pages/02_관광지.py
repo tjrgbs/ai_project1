@@ -42,12 +42,15 @@ st.caption("© 2025 Seoul Travel Map with Folium 🌸")
 import streamlit as st
 import folium
 from streamlit_folium import st_folium
+import streamlit as st
+import folium
+from streamlit_folium import st_folium
 
 # --- 페이지 기본 설정 ---
 st.set_page_config(page_title="서울 관광지도 🗺️", page_icon="🌸", layout="wide")
 
 st.title("🇰🇷 외국인들이 사랑한 서울 관광지 Top 10 🌟")
-st.write("마커 위에 마우스를 올려보세요! 관광지 설명이 나타나요 ✨")
+st.write("마커를 클릭하면 아래에 관광지 설명이 나타나요 ✨")
 
 # --- 관광지 데이터 ---
 spots = [
@@ -66,19 +69,37 @@ spots = [
 # --- 지도 생성 ---
 m = folium.Map(location=[37.5665, 126.9780], zoom_start=12, tiles="CartoDB positron")
 
-# --- 마커 추가 (hover 시 설명 표시) ---
+# --- 마커 추가 ---
 for spot in spots:
     folium.Marker(
-        location=[spot["lat"], spot["lon"]],
-        popup=f"<b>{spot['name']}</b><br>{spot['desc']}",
-        tooltip=f"{spot['name']} — {spot['desc']}",
+        [spot["lat"], spot["lon"]],
+        popup=spot["name"],  # 클릭 시 해당 이름만 반환되도록
+        tooltip="클릭해보세요 👆",
         icon=folium.Icon(color="cadetblue", icon="info-sign")
     ).add_to(m)
 
-# --- Streamlit에 Folium 지도 표시 ---
+# --- 지도 표시 ---
 st_data = st_folium(m, width=950, height=600)
 
+# --- 클릭된 마커 정보 처리 ---
+clicked_name = None
+if st_data and st_data["last_object_clicked_popup"]:
+    clicked_name = st_data["last_object_clicked_popup"]
+
+# --- 관광지 정보 표시 영역 ---
 st.markdown("---")
+st.subheader("📍 선택한 관광지 정보")
+
+if clicked_name:
+    # 선택된 관광지 정보 찾기
+    for spot in spots:
+        if spot["name"] == clicked_name:
+            st.markdown(f"### {spot['name']}")
+            st.write(spot["desc"])
+            break
+else:
+    st.info("지도의 마커를 클릭하면 이곳에 설명이 표시됩니다 💡")
+
 st.caption("© 2025 Seoul Travel Map with Folium 🌸")
 
 
