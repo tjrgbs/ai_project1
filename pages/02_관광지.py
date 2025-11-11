@@ -1,10 +1,12 @@
-# --- 페이지 기본 설정 ---
-st.set_page_config(page_title="서울 관광지도 🗺️", page_icon="🌸", layout="wide")
+import streamlit as st
+import folium
+from streamlit_folium import st_folium
 
+# --- 페이지 제목 ---
 st.title("🇰🇷 외국인들이 사랑한 서울 관광지 Top 10 🌟")
 st.write("마커를 클릭하면 아래에 상세한 설명이 나타나요 ✨")
 
-# --- 관광지 데이터 (긴 설명) ---
+# --- 관광지 데이터 ---
 spots = [
     {
         "name": "경복궁 (Gyeongbokgung Palace)",
@@ -75,7 +77,7 @@ m = folium.Map(location=[37.5665, 126.9780], zoom_start=12, tiles="CartoDB posit
 for spot in spots:
     folium.Marker(
         [spot["lat"], spot["lon"]],
-        popup=spot["name"],  # 클릭 시 이름만 반환되게
+        popup=spot["name"],  # 클릭 시 이름만 반환되도록
         tooltip="클릭해보세요 👆",
         icon=folium.Icon(color="cadetblue", icon="info-sign")
     ).add_to(m)
@@ -85,10 +87,10 @@ st_data = st_folium(m, width=950, height=600)
 
 # --- 클릭된 마커 정보 처리 ---
 clicked_name = None
-if st_data and st_data["last_object_clicked_popup"]:
+if st_data and st_data.get("last_object_clicked_popup"):
     clicked_name = st_data["last_object_clicked_popup"]
 
-# --- 관광지 설명 표시 ---
+# --- 관광지 정보 표시 ---
 st.markdown("---")
 st.subheader("📍 선택한 관광지 정보")
 
