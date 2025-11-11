@@ -1,5 +1,3 @@
-
-
 # --- 페이지 기본 설정 ---
 st.set_page_config(page_title="서울 관광지도 🗺️", page_icon="🌸", layout="wide")
 
