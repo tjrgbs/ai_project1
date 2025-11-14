@@ -1,6 +1,6 @@
 # streamlit_mbti_app.py
 # Streamlit app: 국가별 MBTI 비율 시각화 (Plotly 인터랙티브)
-# 설명: CSV 업로드 또는 /mnt/data/countriesMBTI_16types.csv 파일 사용
+# 설명: CSV 업로드 또는 ../countriesMBTI_16types.csv 파일 사용
 # 사용법: streamlit run streamlit_mbti_app.py
 
 import streamlit as st
@@ -67,7 +67,7 @@ st.markdown("앱: 국가를 선택하면 해당 국가의 MBTI 비율을 인터�
 with st.sidebar:
     st.header("데이터 입력")
     uploaded = st.file_uploader("CSV 파일 업로드 (열: Country + 16 MBTI columns)", type=['csv'])
-    use_example = st.checkbox('Use bundled example (if exists at /mnt/data/countriesMBTI_16types.csv)', value=True)
+    use_example = st.checkbox('Use bundled example (if exists at ../countriesMBTI_16types.csv)', value=True)
 
 # Load dataframe
 df = None
@@ -79,12 +79,12 @@ if uploaded is not None:
 
 if df is None and use_example:
     try:
-        df = load_csv_from_path('/mnt/data/countriesMBTI_16types.csv')
+        df = load_csv_from_path('../countriesMBTI_16types.csv')
     except Exception:
         df = None
 
 if df is None:
-    st.warning("데이터를 제공해주세요. 좌측에서 CSV 파일을 업로드하거나, /mnt/data/countriesMBTI_16types.csv가 존재하는지 확인하세요.")
+    st.warning("데이터를 제공해주세요. 좌측에서 CSV 파일을 업로드하거나, ../countriesMBTI_16types.csv가 존재하는지 확인하세요.")
     st.stop()
 
 # Basic validation and cleanup
@@ -185,3 +185,4 @@ st.markdown("**팁:** CSV 파일의 MBTI 값이 0~1 사이 비율인지(예: 0.0
 # numpy
 
 # End of file
+
