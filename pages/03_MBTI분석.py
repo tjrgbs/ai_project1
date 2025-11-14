@@ -61,7 +61,11 @@ def make_colors_by_rank(n:int):
     return colors
 
 # Load data: offer uploader or default path
-st.title("🌍 Country MBTI Explorer — Plotly + Streamlit")
+# --- Tabs added here ---
+tabs = st.tabs(["국가별 분석", "MBTI 유형별 Top 10"])
+
+with tabs[0]:
+    st.title("🌍 Country MBTI Explorer — Plotly + Streamlit")
 st.markdown("앱: 국가를 선택하면 해당 국가의 MBTI 비율을 인터랙티브 막대그래프로 표시합니다.")
 
 with st.sidebar:
@@ -169,6 +173,42 @@ st.markdown(f"### {selected_country} — 가장 높은 MBTI: **{top_mbti['MBTI']
 
 st.plotly_chart(fig, use_container_width=True)
 
+# --- MBTI 유형별 Top 10 Tab ---
+with tabs[1]:
+    st.header("MBTI 유형별 상위 10개 국가")
+    selected_mbti = st.selectbox("MBTI 유형 선택", avail_mbti)
+
+    # Sort countries by selected MBTI
+    sorted_df = plot_df[['Country', selected_mbti]].sort_values(by=selected_mbti, ascending=False)
+    top10 = sorted_df.head(10)
+
+    # Colors: 한국(Korea) 강조
+    bar_colors = []
+    for c in top10['Country']:
+        if c.strip().lower() in ["korea", "south korea", "republic of korea", "대한민국"]:
+            bar_colors.append('#E63946')  # red
+        else:
+            bar_colors.append('#4dabf7')  # blue
+
+    fig2 = go.Figure()
+    fig2.add_trace(go.Bar(
+        x=top10['Country'],
+        y=top10[selected_mbti],
+        text=(top10[selected_mbti]*100).round(2).astype(str)+'%',
+        textposition='auto',
+        marker=dict(color=bar_colors)
+    ))
+
+    fig2.update_layout(
+        title=f"{selected_mbti} 유형 비율 Top 10 국가",
+        yaxis=dict(title='비율 (0-1)'),
+        xaxis=dict(title='국가'),
+        template='simple_white',
+        height=520
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
 # Optional: show raw data table
 with st.expander('원본 데이터 보기'):
     st.dataframe(row[ ['Country'] + avail_mbti ])
@@ -185,4 +225,3 @@ st.markdown("**팁:** CSV 파일의 MBTI 값이 0~1 사이 비율인지(예: 0.0
 # numpy
 
 # End of file
-
