@@ -36,6 +36,7 @@ if not os.path.exists(CSV_PATH):
 df = load_csv(CSV_PATH)
 if df is None:
     st.stop()
+st.write(df.columns.tolist())
 
 st.success("CSV 파일이 정상적으로 로드되었습니다!")
 
