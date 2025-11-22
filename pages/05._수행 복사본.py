@@ -1,34 +1,44 @@
-
 import streamlit as st
 import pandas as pd
 import altair as alt
 import io
+import requests
 
 st.set_page_config(page_title="강원랜드 외국인 분석", layout="wide")
 st.title("🎰 강원랜드 외국인 국가별 일일 입장현황 분석 대시보드")
 
 # ---------------- 유틸 함수 ----------------
-def load_csv_from_bytes(b: bytes):
-    """바이트를 받아서 여러 인코딩으로 시도해 판다스로 읽기"""
-    if not b or len(b) == 0:
-        raise pd.errors.EmptyDataError("Uploaded file is empty (0 bytes).")
+def load_csv_from_url(url: str):
+    """GitHub RAW URL에서 CSV 로드 (UTF-8 → CP949 순서로 시도)"""
+    if not url:
+        raise ValueError("URL이 비어 있습니다.")
+
+    # GitHub Raw 파일 다운로드
+    response = requests.get(url)
+    if response.status_code != 200:
+        raise ValueError(f"URL 접근 실패: HTTP {response.status_code}")
+
+    b = response.content
+    if len(b) == 0:
+        raise pd.errors.EmptyDataError("다운로드된 파일이 비어 있습니다.")
+
     bio = io.BytesIO(b)
 
-    # 1) UTF-8
+    # UTF-8
     try:
         bio.seek(0)
         return pd.read_csv(bio, encoding="utf-8")
     except:
         pass
 
-    # 2) CP949
+    # CP949
     try:
         bio.seek(0)
         return pd.read_csv(bio, encoding="cp949")
     except:
         pass
 
-    # 3) 텍스트로 디코딩해서 읽기
+    # fallback: 유니코드 replace
     text = b.decode("utf-8", errors="replace")
     return pd.read_csv(io.StringIO(text))
 
@@ -42,24 +52,23 @@ def validate_df(df: pd.DataFrame):
     df["입장일자"] = pd.to_datetime(df["입장일자"], errors="coerce")
     return df
 
-# ---------------- 파일 업로더만 사용 ----------------
-st.subheader("📁 CSV 파일을 업로드하세요")
 
-uploaded_file = st.file_uploader("CSV 파일 업로드", type=["csv"])
+# ---------------- Github RAW URL 입력 ----------------
+st.subheader("🌐 GitHub RAW CSV URL을 입력하세요")
+url = st.text_input("예: https://raw.githubusercontent.com/username/repo/main/data.csv")
 
 df = None
 
-if uploaded_file is not None:
+if url:
     try:
-        b = uploaded_file.read()
-        df = load_csv_from_bytes(b)
+        df = load_csv_from_url(url)
         df = validate_df(df)
         st.success("CSV 파일을 성공적으로 불러왔습니다.")
     except Exception as e:
-        st.error(f"CSV 파일을 불러오는 중 오류 발생: {e}")
+        st.error(f"CSV 파일 로딩 오류: {e}")
         st.stop()
 else:
-    st.info("CSV 파일을 업로드하면 분석을 시작합니다.")
+    st.info("GitHub RAW CSV URL을 입력하면 분석을 시작합니다.")
     st.stop()
 
 # 숫자형 변환
@@ -107,7 +116,7 @@ line = alt.Chart(sel_df).mark_line(point=True).encode(
 )
 st.altair_chart(line, use_container_width=True)
 
-# ---------------- 국가명 직접 검색 기능 ----------------
+# ---------------- 국가명 검색 ----------------
 st.subheader("🔍 국가명 직접 검색")
 search = st.text_input("국가명을 입력하세요 (예: 미국)")
 
@@ -134,3 +143,4 @@ if search:
         st.altair_chart(trend, use_container_width=True)
     else:
         st.warning("해당 국가는 데이터에 없습니다.")
+
